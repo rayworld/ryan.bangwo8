@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace bangw8
@@ -31,12 +32,12 @@ namespace bangw8
         /// <summary>
         /// 通讯密码
         /// </summary>
-        private static readonly string private_Key = "2300bed5297512b56c67c1433c523f83";
+        private static readonly string private_Key = "1cd9d70a7aa5fff32e24b3a219bda568";
 
         /// <summary>
         ///  正通的帮我吧ID
         /// </summary>
-        private static readonly string vendorID = "291622";
+        private static readonly string vendorID = "355359";
 
         /// <summary>
         /// 当前时间戳
@@ -52,7 +53,12 @@ namespace bangw8
         /// 随机数
         /// </summary>
         private static string nonce = "";
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static string sign = "";
+
         /// <summary>
         /// 
         /// </summary>
@@ -68,7 +74,7 @@ namespace bangw8
 
                 authAccount = CmdArgs[1].ToString();
                 timestamp = GetTimeStamp();
-                nonce =  GetNonce();
+                nonce = GetNonce();
                 signature = GetSignature();
 
                 ////读取1.html
@@ -99,6 +105,16 @@ namespace bangw8
                 OpenBrowserUrl(runTimeHtmlFileName);
                 //return;
             }
+
+        }
+
+        public static string SHA1(string content)
+        {
+            //SHA1加密方法
+            var sha1 = new SHA1CryptoServiceProvider();
+            byte[] str01 = Encoding.Default.GetBytes(content);
+            byte[] str02 = sha1.ComputeHash(str01);
+            return BitConverter.ToString(str02).Replace("-", "");
         }
 
         /// <summary>
@@ -156,10 +172,12 @@ namespace bangw8
             //排序
             Array.Sort(Para);
             //转成文本
-            string strPara = string.Join("",Para);    
+            string strPara = string.Join("",Para);
             //SHA1（参数）
-            return Ryan.Helper.Crypto.ShaxEncrypt.Sha1Encrypt(strPara);
-        }
+            //return Ryan.Helper.Crypto.ShaxEncrypt.Sha1Encrypt(strPara);
+            sign = strPara;
+            return SHA1(strPara).ToLower();
+        } 
 
         /// <summary>
         /// 获取随机数
@@ -167,7 +185,7 @@ namespace bangw8
         /// <returns></returns>
         private static string GetNonce()
         {
-            return "";
+            return GetTimeStampSecond();
         }
 
         /// <summary>
@@ -216,19 +234,19 @@ namespace bangw8
         private static string BuildTemplateHtml1(string vendorID, string uid,string timestamp,string nonce,string signature)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("<!DOCTYPE html>\n");
-            sb.Append("<html lang = \"en\">\n");
-            sb.Append("<head>\n");
-            sb.Append("<Title>BangWo8 Client V3.0</Title>\n");
-            sb.Append("<meta http-equiv = \"Content-Type\" content = \"text/html; charset=utf-8\" />\n");
-            sb.Append("<meta charset = \"utf-8\" />\n");
-            sb.Append("<meta name = \"viewport\" content = \"width=device-width, initial-scale=1.0\" />\n");
-            sb.Append("</head>\n");
-            sb.Append("<body>\n");
+            //sb.Append("<!DOCTYPE html>\n");
+            //sb.Append("<html lang = \"en\">\n");
+            //sb.Append("<head>\n");
+            //sb.Append("<Title>BangWo8 Client V3.0</Title>\n");
+            //sb.Append("<meta http-equiv = \"Content-Type\" content = \"text/html; charset=utf-8\" />\n");
+            //sb.Append("<meta charset = \"utf-8\" />\n");
+            //sb.Append("<meta name = \"viewport\" content = \"width=device-width, initial-scale=1.0\" />\n");
+            //sb.Append("</head>\n");
+            //sb.Append("<body>\n");
             sb.Append("<a href='https://www.bangwo8.com/osp2016/chat/pc/index.php?vendorID={0}&uid={1}&timestamp={2}&nonce={3}&signature={4}'>BangWo8</a>\n");
-            sb.Append("</body>\n");
-            sb.Append("</html>\n");
-            return string.Format(sb.ToString(),vendorID, uid,timestamp,nonce,signature);
+            //sb.Append("</body>\n");
+            //sb.Append("</html>\n");
+            return string.Format(sb.ToString(), vendorID, uid, timestamp, nonce, signature);
         }
     }
 }
